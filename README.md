@@ -3,10 +3,10 @@
 Aplikasi Android Kios Ujian Sekolah berbasis Web CBT dengan proteksi anti-nyontek yang ketat dan panel pengawas cerdas.
 
 ## 🔐 Kredensial & Konfigurasi Bawaan
-- **Token Masuk Ujian**: `132456`
-- **Kata Sandi Keluar Ujian**: `13456`
+- **Token Masuk Ujian**: `132456` *(Dapat diubah, diacak, atau di-reset ke default di panel pengawas)*
+- **Password Pengawas / Keluar Ujian**: `00132` *(Dapat diubah atau di-reset ke default di panel pengawas)*
 - **URL Server CBT**: `http://192.168.10.99/cbt`
-- **Akses Panel Pengawas**: Ketuk ikon kunci/perisai sebanyak 5 kali berturut-turut pada layar atau melalui tombol tersamar di bilah atas.
+- **Akses Panel Pengawas**: Ketuk ikon perisai/kunci sebanyak 5 kali berturut-turut pada layar atau melalui tombol tersamar di bilah atas, lalu masukkan kata sandi pengawas (`00132`).
 
 ## 🛡️ Fitur Utama
 1. **Sistem Gerbang Token Awal**:

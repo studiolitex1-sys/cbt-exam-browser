@@ -106,7 +106,11 @@ fun SupervisorPanelScreen(
     onClearViolations: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onResumeExam: () -> Unit,
-    onResetToTokenScreen: () -> Unit
+    onResetToTokenScreen: () -> Unit,
+    onResetTokenToDefault: () -> String = { "132456" },
+    onResetPasswordToDefault: () -> String = { "00132" },
+    onGenerateRandomToken: () -> String = { "132456" },
+    onResetAllCredentials: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var currentTab by remember { mutableIntStateOf(0) }
@@ -271,6 +275,27 @@ fun SupervisorPanelScreen(
                     onScreenBlockChange = { screenshotBlockEnabled = it },
                     onEmuCheckChange = { emuCheckEnabled = it },
                     onFocusCheckChange = { focusCheckEnabled = it },
+                    onResetTokenClick = {
+                        val def = onResetTokenToDefault()
+                        tokenInput = def
+                        Toast.makeText(context, "Token direset ke default ($def)", Toast.LENGTH_SHORT).show()
+                    },
+                    onRandomTokenClick = {
+                        val rnd = onGenerateRandomToken()
+                        tokenInput = rnd
+                        Toast.makeText(context, "Token baru dibuat: $rnd", Toast.LENGTH_SHORT).show()
+                    },
+                    onResetPasswordClick = {
+                        val defPw = onResetPasswordToDefault()
+                        exitPwInput = defPw
+                        Toast.makeText(context, "Password Pengawas direset ke $defPw", Toast.LENGTH_SHORT).show()
+                    },
+                    onResetAllClick = {
+                        onResetAllCredentials()
+                        tokenInput = "132456"
+                        exitPwInput = "00132"
+                        Toast.makeText(context, "Kredensial direset ke default: Token 132456 | PW 00132", Toast.LENGTH_SHORT).show()
+                    },
                     onSave = {
                         val newConfig = config.copy(
                             examUrl = urlInput,
@@ -565,6 +590,10 @@ fun ExamRulesConfigTab(
     onScreenBlockChange: (Boolean) -> Unit,
     onEmuCheckChange: (Boolean) -> Unit,
     onFocusCheckChange: (Boolean) -> Unit,
+    onResetTokenClick: () -> Unit = {},
+    onRandomTokenClick: () -> Unit = {},
+    onResetPasswordClick: () -> Unit = {},
+    onResetAllClick: () -> Unit = {},
     onSave: () -> Unit
 ) {
     LazyColumn(
@@ -579,7 +608,7 @@ fun ExamRulesConfigTab(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Konfigurasi Server & Kunci",
+                        text = "Konfigurasi Server & Kredensial Ujian",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                         color = AccentCyanBright
                     )
@@ -599,36 +628,103 @@ fun ExamRulesConfigTab(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(
-                            value = token,
-                            onValueChange = onTokenChange,
-                            label = { Text("Token Masuk") },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = AccentCyanBright,
-                                unfocusedBorderColor = BorderLight,
-                                focusedTextColor = TextPrimary,
-                                unfocusedTextColor = TextPrimary
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
+                    // Token Management Section
+                    Text(
+                        text = "Token Masuk Ujian Siswa",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = token,
+                        onValueChange = onTokenChange,
+                        label = { Text("Token Masuk") },
+                        placeholder = { Text("Contoh: 132456") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AccentCyanBright,
+                            unfocusedBorderColor = BorderLight,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onResetTokenClick,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentCyanBright)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Reset Token (132456)", fontSize = 11.sp)
+                        }
 
-                        OutlinedTextField(
-                            value = exitPw,
-                            onValueChange = onExitPwChange,
-                            label = { Text("Password Keluar") },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = AccentCyanBright,
-                                unfocusedBorderColor = BorderLight,
-                                focusedTextColor = TextPrimary,
-                                unfocusedTextColor = TextPrimary
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
+                        OutlinedButton(
+                            onClick = onRandomTokenClick,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
+                        ) {
+                            Icon(Icons.Default.Key, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Acak Token Baru", fontSize = 11.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Password Pengawas Management Section
+                    Text(
+                        text = "Password Pengawas / Keluar Ujian",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = exitPw,
+                        onValueChange = onExitPwChange,
+                        label = { Text("Password Pengawas") },
+                        placeholder = { Text("Contoh: 00132") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AccentCyanBright,
+                            unfocusedBorderColor = BorderLight,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedButton(
+                        onClick = onResetPasswordClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SecurityAmber)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Reset Password Pengawas ke Default (00132)", fontSize = 11.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        onClick = onResetAllClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SecurityGreen)
+                    ) {
+                        Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Reset Semua: Token 132456 & Password 00132", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

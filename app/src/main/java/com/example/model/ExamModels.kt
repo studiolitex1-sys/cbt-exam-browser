@@ -18,7 +18,7 @@ data class SecurityViolation(
 data class SupervisorConfig(
     val examUrl: String = "http://192.168.10.99/cbt",
     val tokenRequired: String = "132456",
-    val exitPassword: String = "13456",
+    val exitPassword: String = "00132",
     val screenshotBlockerEnabled: Boolean = true,
     val vpnDetectionEnabled: Boolean = true,
     val emulatorDetectionEnabled: Boolean = true,

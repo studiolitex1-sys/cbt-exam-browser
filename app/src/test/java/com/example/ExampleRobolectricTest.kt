@@ -36,13 +36,53 @@ class ExampleRobolectricTest {
     assertTrue(viewModel.startExam("132456"))
     assertEquals(ScreenMode.EXAM_ACTIVE, viewModel.screenMode.value)
 
-    // Exit password check
-    assertTrue(viewModel.validateExitPassword("13456"))
+    // Exit password check with new password 00132
+    assertTrue(viewModel.validateExitPassword("00132"))
     assertFalse(viewModel.validateExitPassword("12345"))
 
+    // Supervisor password validation
+    assertTrue(viewModel.validateSupervisorPassword("00132"))
+    assertFalse(viewModel.validateSupervisorPassword("99999"))
+
     // Exit with password
-    assertTrue(viewModel.exitExamWithPassword("13456"))
+    assertTrue(viewModel.exitExamWithPassword("00132"))
     assertEquals(ScreenMode.TOKEN_GATE, viewModel.screenMode.value)
+  }
+
+  @Test
+  fun `verify reset token and password functionality`() {
+    val application = ApplicationProvider.getApplicationContext<android.app.Application>()
+    val viewModel = ExamViewModel(application)
+
+    // Change token and password
+    viewModel.updateSupervisorConfig(
+      viewModel.supervisorConfig.value.copy(
+        tokenRequired = "998877",
+        exitPassword = "54321"
+      )
+    )
+    assertEquals("998877", viewModel.supervisorConfig.value.tokenRequired)
+    assertEquals("54321", viewModel.supervisorConfig.value.exitPassword)
+
+    // Reset Token
+    val resetToken = viewModel.resetTokenToDefault()
+    assertEquals("132456", resetToken)
+    assertEquals("132456", viewModel.supervisorConfig.value.tokenRequired)
+
+    // Reset Password
+    val resetPw = viewModel.resetPasswordToDefault()
+    assertEquals("00132", resetPw)
+    assertEquals("00132", viewModel.supervisorConfig.value.exitPassword)
+
+    // Generate Random Token
+    val randomToken = viewModel.generateRandomToken()
+    assertEquals(6, randomToken.length)
+    assertEquals(randomToken, viewModel.supervisorConfig.value.tokenRequired)
+
+    // Reset All
+    viewModel.resetAllCredentialsToDefault()
+    assertEquals("132456", viewModel.supervisorConfig.value.tokenRequired)
+    assertEquals("00132", viewModel.supervisorConfig.value.exitPassword)
   }
 
   @Test

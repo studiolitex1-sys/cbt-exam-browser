@@ -593,7 +593,7 @@ fun ExamWebViewScreen(
                                 exitPasswordError = null
                             },
                             label = { Text("Kata Sandi Keluar") },
-                            placeholder = { Text("Contoh: 13456") },
+                            placeholder = { Text("Contoh: ${config.exitPassword}") },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -620,7 +620,7 @@ fun ExamWebViewScreen(
                         }
 
                         Text(
-                            text = "Password Default: 13456",
+                            text = "Password Pengawas: ${config.exitPassword}",
                             style = MaterialTheme.typography.labelSmall,
                             color = TextMuted,
                             modifier = Modifier.padding(top = 8.dp)
@@ -634,7 +634,7 @@ fun ExamWebViewScreen(
                             if (success) {
                                 showExitDialog = false
                             } else {
-                                exitPasswordError = "Kata sandi salah! Hubungi pengawas (13456)."
+                                exitPasswordError = "Kata sandi salah! Hubungi pengawas (${config.exitPassword})."
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = SecurityRed),

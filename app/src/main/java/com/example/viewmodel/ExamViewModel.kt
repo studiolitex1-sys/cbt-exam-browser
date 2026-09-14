@@ -1,6 +1,7 @@
 package com.example.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.model.DeviceSecurityInfo
@@ -19,10 +20,12 @@ import kotlinx.coroutines.launch
 
 class ExamViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("cbt_exam_config", Context.MODE_PRIVATE)
+
     private val _screenMode = MutableStateFlow(ScreenMode.TOKEN_GATE)
     val screenMode: StateFlow<ScreenMode> = _screenMode.asStateFlow()
 
-    private val _supervisorConfig = MutableStateFlow(SupervisorConfig())
+    private val _supervisorConfig = MutableStateFlow(loadConfigFromPrefs())
     val supervisorConfig: StateFlow<SupervisorConfig> = _supervisorConfig.asStateFlow()
 
     private val _violations = MutableStateFlow<List<SecurityViolation>>(emptyList())
@@ -216,10 +219,74 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSupervisorConfig(config: SupervisorConfig) {
         _supervisorConfig.value = config
+        saveConfigToPrefs(config)
+    }
+
+    fun resetTokenToDefault(): String {
+        val defToken = "132456"
+        val updated = _supervisorConfig.value.copy(tokenRequired = defToken)
+        _supervisorConfig.value = updated
+        saveConfigToPrefs(updated)
+        return defToken
+    }
+
+    fun resetPasswordToDefault(): String {
+        val defPw = "00132"
+        val updated = _supervisorConfig.value.copy(exitPassword = defPw)
+        _supervisorConfig.value = updated
+        saveConfigToPrefs(updated)
+        return defPw
+    }
+
+    fun resetAllCredentialsToDefault() {
+        val updated = _supervisorConfig.value.copy(
+            tokenRequired = "132456",
+            exitPassword = "00132"
+        )
+        _supervisorConfig.value = updated
+        saveConfigToPrefs(updated)
+    }
+
+    fun generateRandomToken(): String {
+        val randomToken = (100000..999999).random().toString()
+        val updated = _supervisorConfig.value.copy(tokenRequired = randomToken)
+        _supervisorConfig.value = updated
+        saveConfigToPrefs(updated)
+        return randomToken
+    }
+
+    fun validateSupervisorPassword(pw: String): Boolean {
+        return pw.trim() == _supervisorConfig.value.exitPassword.trim()
     }
 
     fun unlockAndResetFromSupervisor() {
         clearViolations()
         _screenMode.value = ScreenMode.TOKEN_GATE
+    }
+
+    private fun loadConfigFromPrefs(): SupervisorConfig {
+        return SupervisorConfig(
+            examUrl = prefs.getString("exam_url", "http://192.168.10.99/cbt") ?: "http://192.168.10.99/cbt",
+            tokenRequired = prefs.getString("token_required", "132456") ?: "132456",
+            exitPassword = prefs.getString("exit_password", "00132") ?: "00132",
+            screenshotBlockerEnabled = prefs.getBoolean("screenshot_blocker", true),
+            vpnDetectionEnabled = prefs.getBoolean("vpn_detection", true),
+            emulatorDetectionEnabled = prefs.getBoolean("emu_detection", true),
+            focusLossDetectionEnabled = prefs.getBoolean("focus_detection", true),
+            maxViolationsBeforeLock = prefs.getInt("max_violations", 3)
+        )
+    }
+
+    private fun saveConfigToPrefs(config: SupervisorConfig) {
+        prefs.edit()
+            .putString("exam_url", config.examUrl)
+            .putString("token_required", config.tokenRequired)
+            .putString("exit_password", config.exitPassword)
+            .putBoolean("screenshot_blocker", config.screenshotBlockerEnabled)
+            .putBoolean("vpn_detection", config.vpnDetectionEnabled)
+            .putBoolean("emu_detection", config.emulatorDetectionEnabled)
+            .putBoolean("focus_detection", config.focusLossDetectionEnabled)
+            .putInt("max_violations", config.maxViolationsBeforeLock)
+            .apply()
     }
 }
