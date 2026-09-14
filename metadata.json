@@ -1,0 +1,6 @@
+{
+  "name": "CBT Exam Browser",
+  "description": "Aplikasi CBT Ujian daring dengan keamanan ketat, anti jendela mengambang, blokir screenshot, deteksi VPN & emulator real-time, token ujian, password keluar, dan panel pengawas tersembunyi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

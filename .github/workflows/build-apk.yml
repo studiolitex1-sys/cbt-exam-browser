@@ -1,0 +1,48 @@
+name: Build CBT Exam Browser APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew || true
+
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: cbt-exam-browser-debug-apk
+        path: app/build/outputs/apk/debug/*.apk
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+      with:
+        tag_name: v1.0.0-${{ github.run_number }}
+        name: CBT Exam Browser v1.0.0 (Build ${{ github.run_number }})
+        body: |
+          ### CBT Exam Browser - Android APK Release
+          - **Token Ujian**: `132456`
+          - **Password Keluar**: `13456`
+          - **Server CBT**: `http://192.168.10.99/cbt`
+          - Fitur Anti-Nyontek Lengkap (Screenshot Blocker, Real-time VPN Blocker, Focus Loss Detection, School WiFi Presets).
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
